@@ -263,6 +263,14 @@
 
 <div class="form-wrap">
 
+  <!-- TOMBOL RESET -->
+  <button onclick="resetForm()" style="background:linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color:white; border:none; border-radius:10px; padding:12px 16px; font-size:15px; font-weight:700;
+    cursor:pointer; width:100%; display:flex; align-items:center; justify-content:center; gap:8px;
+    box-shadow:0 2px 8px rgba(231,76,60,0.25);">
+    🔄 Input Data Baru (Reset Form)
+  </button>
+
   <!-- INFO DASAR -->
   <div class="card">
     <div class="card-title">📋 Informasi Dasar</div>
@@ -511,6 +519,44 @@
 <script>
 // Set today's date as default
 document.getElementById('tanggal').valueAsDate = new Date();
+
+// Reset seluruh form
+function resetForm() {
+  if (!confirm('Yakin ingin reset form dan input data baru?')) return;
+
+  // Reset semua input text, number, tel, date, textarea
+  document.querySelectorAll('input[type="text"], input[type="number"], input[type="tel"], textarea').forEach(el => {
+    if (el.id === 'wilayah') { el.value = 'XI'; }
+    else { el.value = ''; }
+  });
+  document.getElementById('tanggal').valueAsDate = new Date();
+
+  // Reset semua checkbox & radio
+  document.querySelectorAll('input[type="checkbox"], input[type="radio"]').forEach(el => {
+    el.checked = false;
+    el.closest('.check-item')?.classList.remove('checked');
+  });
+
+  // Reset foto_ada ke "Tidak Ada"
+  const tidakAda = document.querySelector('input[name="foto_ada"][value="Tidak Ada"]');
+  if (tidakAda) { tidakAda.checked = true; }
+
+  // Reset anggota lain
+  document.getElementById('anggota_rows').innerHTML = '';
+  document.getElementById('anggota_list').style.display = 'none';
+  anggotaCount = 0;
+
+  // Reset foto
+  clearAllFotos();
+  toggleFotoUpload(false);
+
+  // Reset status
+  const st = document.getElementById('status_msg');
+  st.style.display = 'none'; st.textContent = '';
+
+  // Scroll ke atas
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 
 // Toggle checkbox visual state
 function toggleCheck(label) {
