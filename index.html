@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Laporan Pelawatan – Wil 11 GKI Kebayoran Baru</title>
+<style>
+  :root {
+    --primary: #1a4f8a;
+    --primary-light: #2d6abf;
+    --accent: #e8a020;
+    --bg: #f4f6fb;
+    --card: #ffffff;
+    --border: #d0daea;
+    --text: #1c2333;
+    --muted: #6b7a99;
+    --success: #1a7a4a;
+    --radius: 12px;
+    --shadow: 0 2px 12px rgba(26,79,138,0.10);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 40px;
+  }
+
+  header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: white;
+    padding: 20px 16px 16px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  }
+  header h1 {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    line-height: 1.4;
+  }
+  header p {
+    font-size: 12px;
+    opacity: 0.8;
+    margin-top: 4px;
+  }
+
+  .form-wrap {
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 16px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 16px;
+    border: 1px solid var(--border);
+  }
+
+  .card-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--primary);
+    border-bottom: 2px solid var(--primary);
+    padding-bottom: 6px;
+    margin-bottom: 14px;
+  }
+
+  .field {
+    margin-bottom: 12px;
+  }
+  .field:last-child { margin-bottom: 0; }
+
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+
+  input[type="text"],
+  input[type="date"],
+  input[type="number"],
+  input[type="tel"],
+  textarea,
+  select {
+    width: 100%;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 15px;
+    color: var(--text);
+    background: #f8faff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: var(--primary-light);
+    box-shadow: 0 0 0 3px rgba(45,106,191,0.12);
+    background: white;
+  }
+  textarea {
+    resize: vertical;
+    min-height: 70px;
+  }
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7a99' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+  }
+
+  /* Checkbox group */
+  .check-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .check-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    border: 1.5px solid var(--border);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    background: #f8faff;
+  }
+  .check-item:active { background: #e8f0fe; }
+  .check-item input[type="checkbox"],
+  .check-item input[type="radio"] {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--primary);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .check-item span {
+    font-size: 14px;
+    line-height: 1.3;
+    color: var(--text);
+  }
+  .check-item.checked {
+    border-color: var(--primary-light);
+    background: #e8f0fe;
+  }
+
+  /* Anggota rows */
+  .anggota-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .anggota-row .nia-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .anggota-row .nia-label {
+    font-size: 10px;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .anggota-row input.nia-input {
+    width: 80px;
+    padding: 8px 8px;
+    font-size: 14px;
+    text-align: center;
+  }
+
+  .add-btn {
+    background: none;
+    border: 1.5px dashed var(--primary-light);
+    color: var(--primary);
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 4px;
+    transition: background 0.15s;
+  }
+  .add-btn:active { background: #e8f0fe; }
+
+  /* Send button */
+  .send-btn {
+    background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 16px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 4px 16px rgba(37,211,102,0.30);
+    transition: transform 0.1s, box-shadow 0.1s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .send-btn:active {
+    transform: scale(0.98);
+    box-shadow: 0 2px 8px rgba(37,211,102,0.20);
+  }
+  .send-btn svg { flex-shrink: 0; }
+
+  .wa-number-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .wa-number-row input { flex: 1; }
+
+  .hint {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 5px;
+    padding-left: 2px;
+  }
+
+  .divider {
+    border: none;
+    border-top: 1.5px solid var(--border);
+    margin: 4px 0 12px;
+  }
+
+  .row2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>LAPORAN PELAWATAN<br>WIL 11 GKI KEBAYORAN BARU</h1>
+  <p>Isi form lalu kirim via WhatsApp</p>
+</header>
+
+<div class="form-wrap">
+
+  <!-- INFO DASAR -->
+  <div class="card">
+    <div class="card-title">📋 Informasi Dasar</div>
+
+    <div class="row2">
+      <div class="field">
+        <label>No.</label>
+        <input type="number" id="no" placeholder="1" min="1">
+      </div>
+      <div class="field">
+        <label>Wilayah</label>
+        <input type="text" id="wilayah" value="XI">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Tanggal</label>
+      <input type="date" id="tanggal">
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label>Jumlah Pelawat</label>
+        <input type="number" id="jml_pelawat" placeholder="1" min="1">
+      </div>
+      <div class="field" style="grid-column: span 1;">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Nama Pelawat</label>
+      <input type="text" id="nama_pelawat" placeholder="Nama lengkap">
+    </div>
+  </div>
+
+  <!-- CARA PERLAWATAN -->
+  <div class="card">
+    <div class="card-title">📱 Cara Perlawatan</div>
+    <div class="check-group" id="cara_group">
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" name="cara" value="WA Call/Telepon"> <span>WA Call / Telepon</span>
+      </label>
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" name="cara" value="WA Chat/Text"> <span>WA Chat / Text</span>
+      </label>
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" name="cara" value="Video Call/Zoom"> <span>Video Call / Zoom</span>
+      </label>
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" name="cara" value="Kunjungan Fisik/Ragawi/Onsite"> <span>Kunjungan Fisik / Ragawi / Onsite</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- RESPON ANGGOTA -->
+  <div class="card">
+    <div class="card-title">🙋 Respon Anggota Jemaat / Simpatisan</div>
+    <div class="check-group">
+      <label class="check-item" onclick="radioCheck(this, 'respon')">
+        <input type="radio" name="respon" value="Bersedia dikunjungi/dihubungi"> <span>Bersedia dikunjungi / dihubungi</span>
+      </label>
+      <label class="check-item" onclick="radioCheck(this, 'respon')">
+        <input type="radio" name="respon" value="Tidak bersedia dikunjungi/dihubungi"> <span>Tidak bersedia dikunjungi / dihubungi</span>
+      </label>
+      <label class="check-item" onclick="radioCheck(this, 'respon')">
+        <input type="radio" name="respon" value="Alamat rumah tidak ditemukan/nomor telepon tidak terdaftar"> <span>Alamat rumah tidak ditemukan / nomor telepon tidak terdaftar</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- DATA ANGGOTA -->
+  <div class="card">
+    <div class="card-title">👤 Data Anggota</div>
+
+    <div class="field">
+      <label>Nama</label>
+      <input type="text" id="nama_anggota" placeholder="Nama lengkap + gelar/status">
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>NIA</label>
+        <input type="text" id="nia" placeholder="Nomor NIA">
+      </div>
+      <div class="field">
+        <label>No Telp / HP</label>
+        <input type="tel" id="no_telp" placeholder="08xxxxxxxxxx">
+      </div>
+    </div>
+    <div class="field">
+      <label>Alamat</label>
+      <textarea id="alamat" placeholder="Alamat lengkap"></textarea>
+    </div>
+  </div>
+
+  <!-- HASIL PERLAWATAN -->
+  <div class="card">
+    <div class="card-title">📊 Hasil Perlawatan</div>
+    <div class="check-group">
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" name="hasil" value="Keadaan baik-baik saja"> <span>Keadaan baik-baik saja</span>
+      </label>
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" name="hasil" value="Melahirkan"> <span>Melahirkan</span>
+      </label>
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" name="hasil" value="Sakit"> <span>Sakit</span>
+      </label>
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" name="hasil" value="Meninggal"> <span>Meninggal</span>
+      </label>
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" name="hasil" value="Perlu Tindak Lanjut"> <span>Perlu Tindak Lanjut</span>
+      </label>
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" name="hasil" value="Tidak Bertemu"> <span>Tidak Bertemu</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- PERUBAHAN DATA -->
+  <div class="card">
+    <div class="card-title">🔄 Ada Perubahan Data?</div>
+    <div class="check-group">
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" name="perubahan" value="Ya, alamat berubah"> <span>Ya, alamat berubah</span>
+      </label>
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" name="perubahan" value="Ya, nomor HP/telepon berubah"> <span>Ya, nomor HP / telepon berubah</span>
+      </label>
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" name="perubahan" value="Ya, keanggotaan wilayah berubah"> <span>Ya, keanggotaan wilayah berubah</span>
+      </label>
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" name="perubahan" value="Ya, keanggotaan gereja berubah"> <span>Ya, keanggotaan gereja berubah</span>
+      </label>
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" name="perubahan" value="Tidak ada perubahan apapun"> <span>Tidak ada perubahan apapun</span>
+      </label>
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" name="perubahan" value="Tidak dapat memastikan"> <span>Tidak dapat memastikan</span>
+      </label>
+    </div>
+    <div class="field" style="margin-top:12px;">
+      <label>Data yang Berubah (keterangan)</label>
+      <textarea id="data_berubah" placeholder="Jelaskan perubahan data..."></textarea>
+    </div>
+  </div>
+
+  <!-- ANGGOTA LAIN -->
+  <div class="card">
+    <div class="card-title">👨‍👩‍👧 Ada Anggota Jemaat Lain?</div>
+    <div class="check-group" style="margin-bottom:14px;">
+      <label class="check-item" onclick="radioCheck(this, 'ada_anggota'); toggleAnggotaList(true)">
+        <input type="radio" name="ada_anggota" value="Ada"> <span>Ada</span>
+      </label>
+      <label class="check-item" onclick="radioCheck(this, 'ada_anggota'); toggleAnggotaList(false)">
+        <input type="radio" name="ada_anggota" value="Tidak ada"> <span>Tidak ada</span>
+      </label>
+    </div>
+
+    <div id="anggota_list" style="display:none;">
+      <label>Daftar Anggota Lain / Simpatisan</label>
+      <hr class="divider">
+      <div id="anggota_rows"></div>
+      <button type="button" class="add-btn" onclick="addAnggota()">+ Tambah Anggota</button>
+    </div>
+  </div>
+
+  <!-- TEMUAN & TINDAK LANJUT -->
+  <div class="card">
+    <div class="card-title">📝 Temuan & Tindak Lanjut</div>
+    <div class="field">
+      <label>Temuan Perlawatan</label>
+      <textarea id="temuan" placeholder="Ceritakan temuan saat perlawatan..."></textarea>
+    </div>
+    <div class="field">
+      <label>Tindak Lanjut</label>
+      <textarea id="tindak_lanjut" placeholder="Rencana tindak lanjut..."></textarea>
+    </div>
+    <div class="field">
+      <label>Foto Perlawatan</label>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <!-- Toggle -->
+        <div class="check-group" style="flex-direction:row; gap:8px;">
+          <label class="check-item" style="flex:1;" onclick="radioCheck(this,'foto_ada'); toggleFotoUpload(false)">
+            <input type="radio" name="foto_ada" value="Tidak Ada" checked> <span>Tidak Ada</span>
+          </label>
+          <label class="check-item checked" style="flex:1;" onclick="radioCheck(this,'foto_ada'); toggleFotoUpload(true)">
+            <input type="radio" name="foto_ada" value="Ada"> <span>Ada</span>
+          </label>
+        </div>
+        <!-- Upload area -->
+        <div id="foto_upload_area" style="display:none;">
+          <input type="file" id="foto_file" accept="image/*" capture="environment"
+            style="display:none;" onchange="onFotoSelected(event)">
+          <div id="foto_trigger" onclick="document.getElementById('foto_file').click()"
+            style="border:2px dashed var(--primary-light); border-radius:10px; padding:20px;
+                   text-align:center; cursor:pointer; background:#f0f5ff; transition:background 0.2s;">
+            <div style="font-size:32px;">📷</div>
+            <div style="font-size:14px; color:var(--primary); font-weight:600; margin-top:4px;">
+              Ketuk untuk ambil / pilih foto
+            </div>
+            <div style="font-size:11px; color:var(--muted); margin-top:2px;">JPG, PNG — maks 10MB</div>
+          </div>
+          <!-- Preview -->
+          <div id="foto_preview_wrap" style="display:none; margin-top:8px; position:relative;">
+            <img id="foto_preview" style="width:100%; border-radius:10px; max-height:220px; object-fit:cover;">
+            <button onclick="clearFoto()" style="position:absolute; top:8px; right:8px;
+              background:rgba(0,0,0,0.55); color:white; border:none; border-radius:50%;
+              width:28px; height:28px; font-size:16px; cursor:pointer; line-height:1;">✕</button>
+            <div id="foto_name" style="font-size:11px; color:var(--muted); margin-top:4px; text-align:center;"></div>
+          </div>
+          <!-- Upload status -->
+          <div id="foto_status" style="font-size:13px; text-align:center; margin-top:6px; display:none;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KIRIM VIA WA + SHEET -->
+  <div class="card">
+    <div class="card-title">📤 Kirim &amp; Simpan</div>
+    <div class="field">
+      <label>Nomor WA Tujuan</label>
+      <input type="tel" id="wa_number" placeholder="628123456789">
+      <p class="hint">Format: 628xxx (tanpa + atau 0 di depan). Contoh: 6281234567890</p>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:10px; margin-top:4px;">
+      <button class="send-btn" onclick="sendViaFonnte()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Kirim via WhatsApp
+      </button>
+      <button class="send-btn" style="background: linear-gradient(135deg, #1a7a4a 0%, #0f5c35 100%); box-shadow: 0 4px 16px rgba(26,122,74,0.30);" onclick="sendToSheet()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+        Simpan ke Google Sheet
+      </button>
+      <button class="send-btn" style="background: linear-gradient(135deg, #7b2ff7 0%, #4a1a9e 100%); box-shadow: 0 4px 16px rgba(123,47,247,0.30);" onclick="sendBoth()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9h-4v4h-2v-4H9V9h4V5h2v4h4v2z"/></svg>
+        Kirim WA + Simpan ke Sheet
+      </button>
+    </div>
+    <div id="status_msg" style="margin-top:12px; font-size:14px; text-align:center; display:none;"></div>
+  </div>
+
+</div><!-- end form-wrap -->
+
+<script>
+// Set today's date as default
+document.getElementById('tanggal').valueAsDate = new Date();
+
+// Toggle checkbox visual state
+function toggleCheck(label) {
+  setTimeout(() => {
+    const cb = label.querySelector('input[type="checkbox"]');
+    label.classList.toggle('checked', cb.checked);
+  }, 10);
+}
+
+// Radio check visual state
+function radioCheck(label, name) {
+  document.querySelectorAll(`input[name="${name}"]`).forEach(r => {
+    r.closest('.check-item').classList.remove('checked');
+  });
+  setTimeout(() => {
+    label.classList.add('checked');
+  }, 10);
+}
+
+// Toggle anggota list
+function toggleAnggotaList(show) {
+  document.getElementById('anggota_list').style.display = show ? 'block' : 'none';
+  if (show && document.getElementById('anggota_rows').children.length === 0) {
+    addAnggota();
+  }
+}
+
+// Add anggota row
+let anggotaCount = 0;
+function addAnggota() {
+  anggotaCount++;
+  const row = document.createElement('div');
+  row.className = 'anggota-row';
+  row.innerHTML = `
+    <div class="field" style="margin:0;">
+      <input type="text" placeholder="Nama anggota ke-${anggotaCount}" class="anggota-nama">
+    </div>
+    <div class="nia-wrap">
+      <span class="nia-label">NIA</span>
+      <input type="text" class="nia-input anggota-nia" placeholder="—">
+    </div>
+  `;
+  document.getElementById('anggota_rows').appendChild(row);
+}
+
+// Collect checked values for a named group
+function getChecked(name) {
+  return [...document.querySelectorAll(`input[name="${name}"]:checked`)].map(e => e.value);
+}
+
+// Format date
+function formatDate(val) {
+  if (!val) return '-';
+  const [y, m, d] = val.split('-');
+  return `${d}-${m}-${y}`;
+}
+
+// Build WhatsApp message
+function buildMessage(driveUrl) {
+  const no = document.getElementById('no').value || '-';
+  const wilayah = document.getElementById('wilayah').value || '-';
+  const tanggal = formatDate(document.getElementById('tanggal').value);
+  const jml = document.getElementById('jml_pelawat').value || '-';
+  const pelawat = document.getElementById('nama_pelawat').value || '-';
+  const cara = getChecked('cara').join(', ') || '-';
+  const respon = getChecked('respon').join('') || '-';
+  const nama = document.getElementById('nama_anggota').value || '-';
+  const nia = document.getElementById('nia').value || '-';
+  const telp = document.getElementById('no_telp').value || '-';
+  const alamat = document.getElementById('alamat').value || '-';
+  const hasil = getChecked('hasil').join(', ') || '-';
+  const perubahan = getChecked('perubahan').join(', ') || '-';
+  const dataBerubah = document.getElementById('data_berubah').value || '-';
+  const adaAnggota = getChecked('ada_anggota')[0] || '-';
+  const temuan = document.getElementById('temuan').value || '-';
+  const tindak = document.getElementById('tindak_lanjut').value || '-';
+  const fotoInfo = getFotoInfo();
+  const fotoStatus = fotoInfo.foto_status;
+  const fotoUrl = driveUrl || fotoInfo.foto_url || '';
+
+  // Collect anggota lain
+  let anggotaLines = '';
+  const namaInputs = document.querySelectorAll('.anggota-nama');
+  const niaInputs = document.querySelectorAll('.anggota-nia');
+  namaInputs.forEach((ni, i) => {
+    const n = ni.value.trim();
+    const niaVal = niaInputs[i] ? niaInputs[i].value.trim() : '-';
+    if (n) anggotaLines += `   ${i+1}. ${n} (NIA: ${niaVal || '-'})\n`;
+  });
+  if (!anggotaLines) anggotaLines = '   (tidak ada)\n';
+
+  const msg =
+`📋 *LAPORAN PELAWATAN*
+*WIL ${wilayah} GKI KEBAYORAN BARU*
+━━━━━━━━━━━━━━━━━━━━
+📌 *No:* ${no}
+📅 *Tanggal:* ${tanggal}
+👥 *Jumlah Pelawat:* ${jml}
+🙋 *Nama Pelawat:* ${pelawat}
+
+📱 *Cara Perlawatan:*
+   ${cara}
+
+🤝 *Respon Anggota:*
+   ${respon}
+
+━━━━━━━━━━━━━━━━━━━━
+👤 *DATA ANGGOTA*
+   Nama : ${nama}
+   NIA  : ${nia}
+   Telp : ${telp}
+   Alamat: ${alamat}
+
+━━━━━━━━━━━━━━━━━━━━
+📊 *Hasil Perlawatan:*
+   ${hasil}
+
+🔄 *Perubahan Data:*
+   ${perubahan}
+   Keterangan: ${dataBerubah}
+
+👨‍👩‍👧 *Anggota Jemaat Lain:* ${adaAnggota}
+${anggotaLines}
+━━━━━━━━━━━━━━━━━━━━
+📝 *Temuan:*
+   ${temuan}
+
+✅ *Tindak Lanjut:*
+   ${tindak}
+
+📷 *Foto:* ${fotoStatus}${fotoUrl ? '\n🔗 ' + fotoUrl : ''}
+━━━━━━━━━━━━━━━━━━━━
+_Dikirim via Form Digital Pelawatan_`;
+
+  return msg;
+}
+
+// Send via wa.me link (buka WhatsApp langsung)
+async function sendViaFonnte() {
+  const waNum = document.getElementById('wa_number').value.trim().replace(/\D/g,'');
+  if (!waNum) { alert('Harap isi nomor WhatsApp tujuan terlebih dahulu.'); return; }
+
+  const allBtns = document.querySelectorAll('.send-btn');
+  allBtns.forEach(b => { b.disabled = true; b.style.opacity = '0.7'; });
+
+  try {
+    // Upload foto dulu jika ada
+    let driveUrl = null;
+    if (fotoFileData) {
+      showStatus('⏳ Mengupload foto dulu...', '#1a4f8a');
+      driveUrl = await uploadFotoDrive();
+    }
+
+    // Buka WhatsApp dengan pesan
+    const msg = buildMessage(driveUrl);
+    const waUrl = 'https://wa.me/' + waNum + '?text=' + encodeURIComponent(msg);
+    window.open(waUrl, '_blank');
+    showStatus('✅ WhatsApp terbuka! Tekan kirim di WhatsApp.', '#1a7a4a');
+  } catch (err) {
+    showStatus('❌ Error: ' + err.message, '#c0392b');
+  }
+
+  allBtns.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
+}
+
+// Google Sheet Web App URL - isi setelah deploy Apps Script
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxu90YM3jXKAilbMYV7EkaHss15mGVNyy3w6Okq2XTkVPnMgpOVyErGfGxlBDfnCREt3Q/exec';
+
+// Kumpulkan data form ke object
+function collectData() {
+  const namaInputs = document.querySelectorAll('.anggota-nama');
+  const niaInputs  = document.querySelectorAll('.anggota-nia');
+  let daftarAnggota = [];
+  namaInputs.forEach((ni, i) => {
+    const n = ni.value.trim();
+    const niaVal = niaInputs[i] ? niaInputs[i].value.trim() : '';
+    if (n) daftarAnggota.push(n + (niaVal ? ' (NIA: ' + niaVal + ')' : ''));
+  });
+  return {
+    no:            document.getElementById('no').value || '',
+    wilayah:       document.getElementById('wilayah').value || '',
+    tanggal:       document.getElementById('tanggal').value || '',
+    jml_pelawat:   document.getElementById('jml_pelawat').value || '',
+    nama_pelawat:  document.getElementById('nama_pelawat').value || '',
+    cara:          getChecked('cara').join(', '),
+    respon:        getChecked('respon').join(''),
+    nama_anggota:  document.getElementById('nama_anggota').value || '',
+    nia:           document.getElementById('nia').value || '',
+    no_telp:       document.getElementById('no_telp').value || '',
+    alamat:        document.getElementById('alamat').value || '',
+    hasil:         getChecked('hasil').join(', '),
+    perubahan:     getChecked('perubahan').join(', '),
+    data_berubah:  document.getElementById('data_berubah').value || '',
+    ada_anggota:   getChecked('ada_anggota').join(''),
+    daftar_anggota: daftarAnggota.join(' | '),
+    temuan:        document.getElementById('temuan').value || '',
+    tindak_lanjut: document.getElementById('tindak_lanjut').value || '',
+    ...getFotoInfo()
+  };
+}
+
+// Kirim ke Google Sheet
+async function sendToSheet() {
+  if (SHEET_URL === 'PASTE_APPS_SCRIPT_URL_DISINI') {
+    showStatus('Url Apps Script belum diisi. Ikuti petunjuk setup terlebih dahulu.', '#e67e22');
+    return;
+  }
+  showStatus('Menyimpan ke Google Sheet...', '#1a4f8a');
+  try {
+    const data = collectData();
+    const response = await fetch(SHEET_URL, { method: 'POST', body: JSON.stringify(data) });
+    const result = await response.json();
+    if (result.status === true) {
+      showStatus('Data berhasil disimpan ke Google Sheet!', '#1a7a4a');
+    } else {
+      showStatus('Gagal simpan: ' + (result.message || JSON.stringify(result)), '#c0392b');
+    }
+  } catch (err) {
+    showStatus('Error: ' + err.message, '#c0392b');
+  }
+}
+
+// Kirim WA + Sheet sekaligus
+async function sendBoth() {
+  const waNum = document.getElementById('wa_number').value.trim().replace(/\D/g,'');
+  if (!waNum) { alert('Harap isi nomor WhatsApp tujuan terlebih dahulu.'); return; }
+
+  const allBtns = document.querySelectorAll('.send-btn');
+  allBtns.forEach(b => { b.disabled = true; b.style.opacity = '0.7'; });
+
+  try {
+    // Upload foto dulu jika ada
+    let driveUrl = null;
+    if (fotoFileData) {
+      showStatus('⏳ Mengupload foto dulu...', '#1a4f8a');
+      driveUrl = await uploadFotoDrive();
+    }
+
+    // Simpan ke Sheet
+    showStatus('⏳ Menyimpan ke Google Sheet...', '#1a4f8a');
+    const sheetOk = await sendToSheetSilent();
+
+    // Buka WhatsApp
+    const msg = buildMessage(driveUrl);
+    const waUrl = 'https://wa.me/' + waNum + '?text=' + encodeURIComponent(msg);
+    window.open(waUrl, '_blank');
+
+    if (sheetOk) {
+      showStatus('✅ Sheet tersimpan! WhatsApp terbuka — tekan kirim.', '#1a7a4a');
+    } else {
+      showStatus('⚠️ Sheet gagal, tapi WhatsApp terbuka — tekan kirim.', '#e67e22');
+    }
+  } catch (err) {
+    showStatus('❌ Error: ' + err.message, '#c0392b');
+  }
+
+  allBtns.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
+}
+
+async function sendToSheetSilent() {
+  if (SHEET_URL === 'PASTE_APPS_SCRIPT_URL_DISINI') return false;
+  const data = collectData();
+  const response = await fetch(SHEET_URL, { method: 'POST', body: JSON.stringify(data) });
+  const result = await response.json();
+  return result.status === true;
+}
+
+function showStatus(msg, color) {
+  const el = document.getElementById('status_msg');
+  el.style.display = 'block';
+  el.style.color = color;
+  el.textContent = msg;
+}
+
+// ── FOTO ──────────────────────────────────────
+let fotoFileData   = null; // base64 string
+let fotoMimeType   = null;
+let fotoFileName   = null;
+let fotoDriveUrl   = null; // set after upload to Drive
+
+function toggleFotoUpload(show) {
+  document.getElementById('foto_upload_area').style.display = show ? 'block' : 'none';
+  if (!show) clearFoto();
+}
+
+function onFotoSelected(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (file.size > 10 * 1024 * 1024) {
+    alert('Ukuran foto maksimal 10MB.'); return;
+  }
+  fotoMimeType = file.type;
+  fotoFileName = 'foto_' + Date.now() + '_' + file.name.replace(/\s+/g, '_');
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    fotoFileData = ev.target.result; // full data URL
+    document.getElementById('foto_preview').src = fotoFileData;
+    document.getElementById('foto_preview_wrap').style.display = 'block';
+    document.getElementById('foto_trigger').style.display = 'none';
+    document.getElementById('foto_name').textContent = file.name + ' (' + (file.size/1024).toFixed(0) + ' KB)';
+    fotoDriveUrl = null; // reset, belum diupload
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearFoto() {
+  fotoFileData = null; fotoMimeType = null; fotoFileName = null; fotoDriveUrl = null;
+  document.getElementById('foto_file').value = '';
+  document.getElementById('foto_preview_wrap').style.display = 'none';
+  document.getElementById('foto_trigger').style.display = 'block';
+  const fs = document.getElementById('foto_status');
+  fs.style.display = 'none'; fs.textContent = '';
+}
+
+// Upload foto ke Drive, return public URL
+async function uploadFotoDrive() {
+  if (!fotoFileData) return null;
+  if (fotoDriveUrl) return fotoDriveUrl; // sudah diupload
+
+  if (SHEET_URL === 'PASTE_APPS_SCRIPT_URL_DISINI') {
+    showFotoStatus('⚠️ URL Apps Script belum diisi.', '#e67e22');
+    return null;
+  }
+
+  showFotoStatus('⏳ Mengupload foto ke Google Drive...', '#1a4f8a');
+
+  try {
+    const resp = await fetch(SHEET_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action:   'uploadPhoto',
+        fileData: fotoFileData,
+        mimeType: fotoMimeType,
+        fileName: fotoFileName
+      })
+    });
+    const result = await resp.json();
+    if (result.status === true) {
+      fotoDriveUrl = result.publicUrl;
+      showFotoStatus('✅ Foto tersimpan di Drive!', '#1a7a4a');
+      return fotoDriveUrl;
+    } else {
+      showFotoStatus('❌ Upload gagal: ' + result.message, '#c0392b');
+      return null;
+    }
+  } catch (err) {
+    showFotoStatus('❌ Error upload: ' + err.message, '#c0392b');
+    return null;
+  }
+}
+
+function showFotoStatus(msg, color) {
+  const el = document.getElementById('foto_status');
+  el.style.display = 'block';
+  el.style.color = color;
+  el.textContent = msg;
+}
+
+// Fungsi sendFotoFonnte tidak lagi dibutuhkan (pakai wa.me)
+
+// Get foto info untuk collectData
+function getFotoInfo() {
+  const ada = document.querySelector('input[name="foto_ada"]:checked');
+  return {
+    foto_status: ada ? ada.value : 'Tidak Ada',
+    foto_url:    fotoDriveUrl || ''
+  };
+}
+</script>
+</body>
+</html>
