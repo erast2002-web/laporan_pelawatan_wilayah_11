@@ -456,25 +456,24 @@
         </div>
         <!-- Upload area -->
         <div id="foto_upload_area" style="display:none;">
-          <input type="file" id="foto_file" accept="image/*" capture="environment"
-            style="display:none;" onchange="onFotoSelected(event)">
+          <input type="file" id="foto_file" accept="image/*" multiple
+            style="display:none;" onchange="onFotosSelected(event)">
           <div id="foto_trigger" onclick="document.getElementById('foto_file').click()"
             style="border:2px dashed var(--primary-light); border-radius:10px; padding:20px;
                    text-align:center; cursor:pointer; background:#f0f5ff; transition:background 0.2s;">
             <div style="font-size:32px;">📷</div>
             <div style="font-size:14px; color:var(--primary); font-weight:600; margin-top:4px;">
-              Ketuk untuk ambil / pilih foto
+              Ketuk untuk pilih foto (bisa lebih dari 1)
             </div>
-            <div style="font-size:11px; color:var(--muted); margin-top:2px;">JPG, PNG — maks 10MB</div>
+            <div style="font-size:11px; color:var(--muted); margin-top:2px;">JPG, PNG — maks 10MB per foto</div>
           </div>
-          <!-- Preview -->
-          <div id="foto_preview_wrap" style="display:none; margin-top:8px; position:relative;">
-            <img id="foto_preview" style="width:100%; border-radius:10px; max-height:220px; object-fit:cover;">
-            <button onclick="clearFoto()" style="position:absolute; top:8px; right:8px;
-              background:rgba(0,0,0,0.55); color:white; border:none; border-radius:50%;
-              width:28px; height:28px; font-size:16px; cursor:pointer; line-height:1;">✕</button>
-            <div id="foto_name" style="font-size:11px; color:var(--muted); margin-top:4px; text-align:center;"></div>
-          </div>
+          <!-- Preview grid -->
+          <div id="foto_previews" style="display:none; margin-top:8px; display:flex; flex-wrap:wrap; gap:8px;"></div>
+          <!-- Tambah foto lagi -->
+          <button type="button" id="foto_add_more" onclick="document.getElementById('foto_file').click()"
+            style="display:none; margin-top:8px; background:none; border:1.5px dashed var(--primary-light);
+                   color:var(--primary); padding:8px; border-radius:8px; font-size:13px; font-weight:600;
+                   cursor:pointer; width:100%;">+ Tambah Foto Lagi</button>
           <!-- Upload status -->
           <div id="foto_status" style="font-size:13px; text-align:center; margin-top:6px; display:none;"></div>
         </div>
@@ -486,9 +485,9 @@
   <div class="card">
     <div class="card-title">📤 Kirim &amp; Simpan</div>
     <div class="field">
-      <label>Nomor WA Tujuan</label>
-      <input type="tel" id="wa_number" placeholder="628123456789">
-      <p class="hint">Format: 628xxx (tanpa + atau 0 di depan). Contoh: 6281234567890</p>
+      <label>Nomor / ID Grup WA Tujuan</label>
+      <input type="text" id="wa_number" placeholder="628123456789 atau 120363...">
+      <p class="hint">Nomor HP: 628xxx. Grup WA: copy ID grup dari Fonnte dashboard.</p>
     </div>
     <div style="display:flex; flex-direction:column; gap:10px; margin-top:4px;">
       <button class="send-btn" onclick="sendViaFonnte()">
@@ -570,7 +569,7 @@ function formatDate(val) {
 }
 
 // Build WhatsApp message
-function buildMessage(driveUrl) {
+function buildMessage(driveUrls) {
   const no = document.getElementById('no').value || '-';
   const wilayah = document.getElementById('wilayah').value || '-';
   const tanggal = formatDate(document.getElementById('tanggal').value);
@@ -590,7 +589,7 @@ function buildMessage(driveUrl) {
   const tindak = document.getElementById('tindak_lanjut').value || '-';
   const fotoInfo = getFotoInfo();
   const fotoStatus = fotoInfo.foto_status;
-  const fotoUrl = driveUrl || fotoInfo.foto_url || '';
+  const urls = driveUrls && driveUrls.length > 0 ? driveUrls : (fotoInfo.foto_urls || []);
 
   // Collect anggota lain
   let anggotaLines = '';
@@ -602,6 +601,11 @@ function buildMessage(driveUrl) {
     if (n) anggotaLines += `   ${i+1}. ${n} (NIA: ${niaVal || '-'})\n`;
   });
   if (!anggotaLines) anggotaLines = '   (tidak ada)\n';
+
+  let fotoLines = fotoStatus;
+  if (urls.length > 0) {
+    fotoLines += '\n' + urls.map((u, i) => `🔗 Foto ${i+1}: ${u}`).join('\n');
+  }
 
   const msg =
 `📋 *LAPORAN PELAWATAN*
@@ -642,34 +646,54 @@ ${anggotaLines}
 ✅ *Tindak Lanjut:*
    ${tindak}
 
-📷 *Foto:* ${fotoStatus}${fotoUrl ? '\n🔗 ' + fotoUrl : ''}
+📷 *Foto:* ${fotoLines}
 ━━━━━━━━━━━━━━━━━━━━
 _Dikirim via Form Digital Pelawatan_`;
 
   return msg;
 }
 
-// Send via wa.me link (buka WhatsApp langsung)
+// Fonnte API token
+const FONNTE_TOKEN = 'MnNy9EugRVxAMrr83vYx';
+
+// Send via Fonnte API (support grup WA)
 async function sendViaFonnte() {
-  const waNum = document.getElementById('wa_number').value.trim().replace(/\D/g,'');
-  if (!waNum) { alert('Harap isi nomor WhatsApp tujuan terlebih dahulu.'); return; }
+  const waTarget = document.getElementById('wa_number').value.trim();
+  if (!waTarget) { alert('Harap isi nomor / ID grup WA tujuan.'); return; }
 
   const allBtns = document.querySelectorAll('.send-btn');
   allBtns.forEach(b => { b.disabled = true; b.style.opacity = '0.7'; });
+  showStatus('⏳ Mengirim laporan...', '#1a4f8a');
 
   try {
-    // Upload foto dulu jika ada
-    let driveUrl = null;
-    if (fotoFileData) {
-      showStatus('⏳ Mengupload foto dulu...', '#1a4f8a');
-      driveUrl = await uploadFotoDrive();
+    // Upload semua foto dulu jika ada
+    let driveUrls = [];
+    if (fotoFiles.length > 0) {
+      showStatus('⏳ Mengupload ' + fotoFiles.length + ' foto...', '#1a4f8a');
+      driveUrls = await uploadAllFotos();
     }
 
-    // Buka WhatsApp dengan pesan
-    const msg = buildMessage(driveUrl);
-    const waUrl = 'https://wa.me/' + waNum + '?text=' + encodeURIComponent(msg);
-    window.location.href = waUrl;
-    showStatus('✅ WhatsApp terbuka! Tekan kirim di WhatsApp.', '#1a7a4a');
+    // Kirim teks laporan via Fonnte
+    const msg = buildMessage(driveUrls);
+    const resp = await fetch('https://api.fonnte.com/send', {
+      method: 'POST',
+      headers: { 'Authorization': FONNTE_TOKEN, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ target: waTarget, message: msg, countryCode: '62' })
+    });
+    const result = await resp.json();
+
+    if (result.status === true || result.status === 'true') {
+      // Kirim setiap foto sebagai gambar WA terpisah
+      let fotoSent = 0;
+      for (const url of driveUrls) {
+        fotoSent++;
+        showStatus('⏳ Mengirim foto ' + fotoSent + '/' + driveUrls.length + '...', '#1a4f8a');
+        await sendFotoFonnte(waTarget, url, '📷 Foto Perlawatan ' + fotoSent + ' - ' + (document.getElementById('nama_anggota').value || ''));
+      }
+      showStatus('✅ Laporan' + (driveUrls.length > 0 ? ' + ' + driveUrls.length + ' foto' : '') + ' berhasil dikirim!', '#1a7a4a');
+    } else {
+      showStatus('❌ Gagal kirim: ' + (result.reason || result.message || JSON.stringify(result)), '#c0392b');
+    }
   } catch (err) {
     showStatus('❌ Error: ' + err.message, '#c0392b');
   }
@@ -736,34 +760,47 @@ async function sendToSheet() {
 
 // Kirim WA + Sheet sekaligus
 async function sendBoth() {
-  const waNum = document.getElementById('wa_number').value.trim().replace(/\D/g,'');
-  if (!waNum) { alert('Harap isi nomor WhatsApp tujuan terlebih dahulu.'); return; }
+  const waTarget = document.getElementById('wa_number').value.trim();
+  if (!waTarget) { alert('Harap isi nomor / ID grup WA tujuan.'); return; }
 
   const allBtns = document.querySelectorAll('.send-btn');
   allBtns.forEach(b => { b.disabled = true; b.style.opacity = '0.7'; });
 
   try {
-    // Upload foto dulu jika ada
-    let driveUrl = null;
-    if (fotoFileData) {
-      showStatus('⏳ Mengupload foto dulu...', '#1a4f8a');
-      driveUrl = await uploadFotoDrive();
+    // Upload semua foto dulu
+    let driveUrls = [];
+    if (fotoFiles.length > 0) {
+      showStatus('⏳ Mengupload ' + fotoFiles.length + ' foto...', '#1a4f8a');
+      driveUrls = await uploadAllFotos();
     }
 
     // Simpan ke Sheet
     showStatus('⏳ Menyimpan ke Google Sheet...', '#1a4f8a');
     const sheetOk = await sendToSheetSilent();
 
-    // Buka WhatsApp
-    const msg = buildMessage(driveUrl);
-    const waUrl = 'https://wa.me/' + waNum + '?text=' + encodeURIComponent(msg);
-    window.location.href = waUrl;
+    // Kirim WA via Fonnte
+    showStatus('⏳ Mengirim ke WhatsApp...', '#1a4f8a');
+    const msg = buildMessage(driveUrls);
+    const resp = await fetch('https://api.fonnte.com/send', {
+      method: 'POST',
+      headers: { 'Authorization': FONNTE_TOKEN, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ target: waTarget, message: msg, countryCode: '62' })
+    });
+    const result = await resp.json();
+    const waOk = result.status === true || result.status === 'true';
 
-    if (sheetOk) {
-      showStatus('✅ Sheet tersimpan! WhatsApp terbuka — tekan kirim.', '#1a7a4a');
-    } else {
-      showStatus('⚠️ Sheet gagal, tapi WhatsApp terbuka — tekan kirim.', '#e67e22');
+    // Kirim foto WA
+    if (waOk) {
+      for (let i = 0; i < driveUrls.length; i++) {
+        showStatus('⏳ Mengirim foto ' + (i+1) + '/' + driveUrls.length + '...', '#1a4f8a');
+        await sendFotoFonnte(waTarget, driveUrls[i], '📷 Foto Perlawatan ' + (i+1));
+      }
     }
+
+    if (waOk && sheetOk) showStatus('✅ Laporan terkirim via WA + tersimpan di Sheet!', '#1a7a4a');
+    else if (waOk)       showStatus('✅ WA terkirim, ⚠️ Sheet gagal.', '#e67e22');
+    else if (sheetOk)    showStatus('⚠️ WA gagal, ✅ Sheet berhasil.', '#e67e22');
+    else                 showStatus('❌ Keduanya gagal. Cek koneksi.', '#c0392b');
   } catch (err) {
     showStatus('❌ Error: ' + err.message, '#c0392b');
   }
@@ -779,6 +816,20 @@ async function sendToSheetSilent() {
   return result.status === true;
 }
 
+// Kirim foto via Fonnte (sebagai gambar WA)
+async function sendFotoFonnte(target, driveUrl, caption) {
+  if (!driveUrl) return false;
+  try {
+    const resp = await fetch('https://api.fonnte.com/send', {
+      method: 'POST',
+      headers: { 'Authorization': FONNTE_TOKEN, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ target: target, message: caption || 'Foto Perlawatan', file: driveUrl, countryCode: '62' })
+    });
+    const result = await resp.json();
+    return result.status === true || result.status === 'true';
+  } catch { return false; }
+}
+
 function showStatus(msg, color) {
   const el = document.getElementById('status_msg');
   el.style.display = 'block';
@@ -786,81 +837,117 @@ function showStatus(msg, color) {
   el.textContent = msg;
 }
 
-// ── FOTO ──────────────────────────────────────
-let fotoFileData   = null; // base64 string
-let fotoMimeType   = null;
-let fotoFileName   = null;
-let fotoDriveUrl   = null; // set after upload to Drive
+// ── FOTO (MULTI) ──────────────────────────────
+let fotoFiles = []; // array of { data, mimeType, fileName, driveUrl, originalName, size }
 
 function toggleFotoUpload(show) {
   document.getElementById('foto_upload_area').style.display = show ? 'block' : 'none';
-  if (!show) clearFoto();
+  if (!show) clearAllFotos();
 }
 
-function onFotoSelected(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  if (file.size > 10 * 1024 * 1024) {
-    alert('Ukuran foto maksimal 10MB.'); return;
+function onFotosSelected(e) {
+  const files = e.target.files;
+  if (!files || files.length === 0) return;
+
+  for (const file of files) {
+    if (file.size > 10 * 1024 * 1024) {
+      alert('Foto ' + file.name + ' melebihi 10MB, dilewati.'); continue;
+    }
+    const namaAnggota = (document.getElementById('nama_anggota').value || 'Anonim').trim().replace(/\s+/g, '_');
+    const tgl = document.getElementById('tanggal').value || new Date().toISOString().slice(0,10);
+    const fotoIdx = fotoFiles.length + 1;
+    const ext = file.name.split('.').pop() || 'jpg';
+    const entry = {
+      data: null, mimeType: file.type,
+      fileName: 'Pelawatan_' + namaAnggota + '_' + tgl + '_foto' + fotoIdx + '.' + ext,
+      driveUrl: null, originalName: file.name, size: file.size
+    };
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      entry.data = ev.target.result;
+      fotoFiles.push(entry);
+      renderFotoPreviews();
+    };
+    reader.readAsDataURL(file);
   }
-  fotoMimeType = file.type;
-  fotoFileName = 'foto_' + Date.now() + '_' + file.name.replace(/\s+/g, '_');
-  const reader = new FileReader();
-  reader.onload = function(ev) {
-    fotoFileData = ev.target.result; // full data URL
-    document.getElementById('foto_preview').src = fotoFileData;
-    document.getElementById('foto_preview_wrap').style.display = 'block';
-    document.getElementById('foto_trigger').style.display = 'none';
-    document.getElementById('foto_name').textContent = file.name + ' (' + (file.size/1024).toFixed(0) + ' KB)';
-    fotoDriveUrl = null; // reset, belum diupload
-  };
-  reader.readAsDataURL(file);
+  // Reset input agar bisa pilih file yang sama lagi
+  e.target.value = '';
 }
 
-function clearFoto() {
-  fotoFileData = null; fotoMimeType = null; fotoFileName = null; fotoDriveUrl = null;
+function renderFotoPreviews() {
+  const container = document.getElementById('foto_previews');
+  container.innerHTML = '';
+  container.style.display = fotoFiles.length > 0 ? 'flex' : 'none';
+  document.getElementById('foto_trigger').style.display = fotoFiles.length > 0 ? 'none' : 'block';
+  document.getElementById('foto_add_more').style.display = fotoFiles.length > 0 ? 'block' : 'none';
+
+  fotoFiles.forEach((f, idx) => {
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'position:relative; width:calc(50% - 4px); border-radius:10px; overflow:hidden; border:1px solid var(--border);';
+    wrap.innerHTML = `
+      <img src="${f.data}" style="width:100%; height:100px; object-fit:cover;">
+      <button onclick="removeFoto(${idx})" style="position:absolute; top:4px; right:4px;
+        background:rgba(0,0,0,0.6); color:white; border:none; border-radius:50%;
+        width:24px; height:24px; font-size:14px; cursor:pointer; line-height:1;">✕</button>
+      <div style="font-size:10px; color:var(--muted); text-align:center; padding:2px;">
+        ${f.originalName} (${(f.size/1024).toFixed(0)} KB)${f.driveUrl ? ' ✅' : ''}
+      </div>`;
+    container.appendChild(wrap);
+  });
+}
+
+function removeFoto(idx) {
+  fotoFiles.splice(idx, 1);
+  renderFotoPreviews();
+}
+
+function clearAllFotos() {
+  fotoFiles = [];
   document.getElementById('foto_file').value = '';
-  document.getElementById('foto_preview_wrap').style.display = 'none';
+  document.getElementById('foto_previews').innerHTML = '';
+  document.getElementById('foto_previews').style.display = 'none';
   document.getElementById('foto_trigger').style.display = 'block';
+  document.getElementById('foto_add_more').style.display = 'none';
   const fs = document.getElementById('foto_status');
   fs.style.display = 'none'; fs.textContent = '';
 }
 
-// Upload foto ke Drive, return public URL
-async function uploadFotoDrive() {
-  if (!fotoFileData) return null;
-  if (fotoDriveUrl) return fotoDriveUrl; // sudah diupload
-
+// Upload semua foto ke Drive, return array of URLs
+async function uploadAllFotos() {
+  if (fotoFiles.length === 0) return [];
   if (SHEET_URL === 'PASTE_APPS_SCRIPT_URL_DISINI') {
     showFotoStatus('⚠️ URL Apps Script belum diisi.', '#e67e22');
-    return null;
+    return [];
   }
 
-  showFotoStatus('⏳ Mengupload foto ke Google Drive...', '#1a4f8a');
+  const urls = [];
+  for (let i = 0; i < fotoFiles.length; i++) {
+    const f = fotoFiles[i];
+    if (f.driveUrl) { urls.push(f.driveUrl); continue; } // sudah diupload
 
-  try {
-    const resp = await fetch(SHEET_URL, {
-      method: 'POST',
-      body: JSON.stringify({
-        action:   'uploadPhoto',
-        fileData: fotoFileData,
-        mimeType: fotoMimeType,
-        fileName: fotoFileName
-      })
-    });
-    const result = await resp.json();
-    if (result.status === true) {
-      fotoDriveUrl = result.publicUrl;
-      showFotoStatus('✅ Foto tersimpan di Drive!', '#1a7a4a');
-      return fotoDriveUrl;
-    } else {
-      showFotoStatus('❌ Upload gagal: ' + result.message, '#c0392b');
-      return null;
+    showFotoStatus('⏳ Upload foto ' + (i+1) + '/' + fotoFiles.length + '...', '#1a4f8a');
+    try {
+      const resp = await fetch(SHEET_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'uploadPhoto', fileData: f.data, mimeType: f.mimeType, fileName: f.fileName })
+      });
+      const result = await resp.json();
+      if (result.status === true) {
+        f.driveUrl = result.publicUrl;
+        urls.push(f.driveUrl);
+      } else {
+        showFotoStatus('❌ Gagal upload foto ' + (i+1) + ': ' + result.message, '#c0392b');
+      }
+    } catch (err) {
+      showFotoStatus('❌ Error foto ' + (i+1) + ': ' + err.message, '#c0392b');
     }
-  } catch (err) {
-    showFotoStatus('❌ Error upload: ' + err.message, '#c0392b');
-    return null;
   }
+
+  if (urls.length === fotoFiles.length) {
+    showFotoStatus('✅ ' + urls.length + ' foto tersimpan di Drive!', '#1a7a4a');
+  }
+  renderFotoPreviews(); // update checkmarks
+  return urls;
 }
 
 function showFotoStatus(msg, color) {
@@ -870,14 +957,15 @@ function showFotoStatus(msg, color) {
   el.textContent = msg;
 }
 
-// Fungsi sendFotoFonnte tidak lagi dibutuhkan (pakai wa.me)
-
 // Get foto info untuk collectData
 function getFotoInfo() {
   const ada = document.querySelector('input[name="foto_ada"]:checked');
+  const urls = fotoFiles.filter(f => f.driveUrl).map(f => f.driveUrl);
   return {
     foto_status: ada ? ada.value : 'Tidak Ada',
-    foto_url:    fotoDriveUrl || ''
+    foto_url: urls.join(' | '),
+    foto_urls: urls,
+    foto_count: fotoFiles.length
   };
 }
 </script>
