@@ -35,6 +35,9 @@
     padding: 20px 16px 16px;
     text-align: center;
     box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    position: sticky;
+    top: 0;
+    z-index: 100;
   }
   header h1 {
     font-size: 15px;
@@ -268,7 +271,7 @@
     color:white; border:none; border-radius:10px; padding:12px 16px; font-size:15px; font-weight:700;
     cursor:pointer; width:100%; display:flex; align-items:center; justify-content:center; gap:8px;
     box-shadow:0 2px 8px rgba(231,76,60,0.25);">
-    🔄 Input Data Baru (Reset Form)
+    🔄 Reset Form
   </button>
 
   <!-- INFO DASAR -->
@@ -277,32 +280,23 @@
 
     <div class="row2">
       <div class="field">
-        <label>No.</label>
-        <input type="number" id="no" placeholder="1" min="1">
-      </div>
-      <div class="field">
         <label>Wilayah</label>
-        <input type="text" id="wilayah" value="XI">
+        <input type="text" id="wilayah" value="XI" readonly style="background:#eef2f7; font-weight:600;">
       </div>
-    </div>
-
-    <div class="field">
-      <label>Tanggal</label>
-      <input type="date" id="tanggal">
-    </div>
-
-    <div class="row2">
       <div class="field">
-        <label>Jumlah Pelawat</label>
-        <input type="number" id="jml_pelawat" placeholder="1" min="1">
-      </div>
-      <div class="field" style="grid-column: span 1;">
+        <label>Tanggal</label>
+        <input type="date" id="tanggal">
       </div>
     </div>
 
     <div class="field">
+      <label>Jumlah Pelawat</label>
+      <input type="number" id="jml_pelawat" placeholder="1" min="1" max="20" onchange="generateNamaPelawat()" oninput="generateNamaPelawat()">
+    </div>
+
+    <div class="field" id="nama_pelawat_container">
       <label>Nama Pelawat</label>
-      <input type="text" id="nama_pelawat" placeholder="Nama lengkap">
+      <div id="nama_pelawat_rows"></div>
     </div>
   </div>
 
@@ -310,17 +304,17 @@
   <div class="card">
     <div class="card-title">📱 Cara Perlawatan</div>
     <div class="check-group" id="cara_group">
-      <label class="check-item" onclick="toggleCheck(this)">
-        <input type="checkbox" name="cara" value="WA Call/Telepon"> <span>WA Call / Telepon</span>
+      <label class="check-item" onclick="radioCheck(this, 'cara')">
+        <input type="radio" name="cara" value="WA Call/Telepon"> <span>WA Call / Telepon</span>
       </label>
-      <label class="check-item" onclick="toggleCheck(this)">
-        <input type="checkbox" name="cara" value="WA Chat/Text"> <span>WA Chat / Text</span>
+      <label class="check-item" onclick="radioCheck(this, 'cara')">
+        <input type="radio" name="cara" value="WA Chat/Text"> <span>WA Chat / Text</span>
       </label>
-      <label class="check-item" onclick="toggleCheck(this)">
-        <input type="checkbox" name="cara" value="Video Call/Zoom"> <span>Video Call / Zoom</span>
+      <label class="check-item" onclick="radioCheck(this, 'cara')">
+        <input type="radio" name="cara" value="Video Call/Zoom"> <span>Video Call / Zoom</span>
       </label>
-      <label class="check-item" onclick="toggleCheck(this)">
-        <input type="checkbox" name="cara" value="Kunjungan Fisik/Ragawi/Onsite"> <span>Kunjungan Fisik / Ragawi / Onsite</span>
+      <label class="check-item" onclick="radioCheck(this, 'cara')">
+        <input type="radio" name="cara" value="Kunjungan Fisik/Ragawi/Onsite"> <span>Kunjungan Fisik / Ragawi / Onsite</span>
       </label>
     </div>
   </div>
@@ -511,6 +505,36 @@
 // Set today's date as default
 document.getElementById('tanggal').valueAsDate = new Date();
 
+// Generate nama pelawat inputs sesuai jumlah
+function generateNamaPelawat() {
+  const jml = parseInt(document.getElementById('jml_pelawat').value) || 0;
+  const container = document.getElementById('nama_pelawat_rows');
+  const existing = container.querySelectorAll('.pelawat-input');
+
+  // Simpan nilai yang sudah diisi
+  const values = [];
+  existing.forEach(inp => values.push(inp.value));
+
+  container.innerHTML = '';
+  for (let i = 0; i < jml; i++) {
+    const inp = document.createElement('input');
+    inp.type = 'text';
+    inp.className = 'pelawat-input';
+    inp.placeholder = 'Nama pelawat ' + (i + 1);
+    inp.style.marginBottom = i < jml - 1 ? '8px' : '0';
+    if (values[i]) inp.value = values[i];
+    container.appendChild(inp);
+  }
+}
+
+// Helper: ambil semua nama pelawat
+function getNamaPelawat() {
+  const inputs = document.querySelectorAll('.pelawat-input');
+  const names = [];
+  inputs.forEach(inp => { if (inp.value.trim()) names.push(inp.value.trim()); });
+  return names.join(', ');
+}
+
 // Reset seluruh form
 function resetForm() {
   if (!confirm('Yakin ingin reset form dan input data baru?')) return;
@@ -521,6 +545,9 @@ function resetForm() {
     else { el.value = ''; }
   });
   document.getElementById('tanggal').valueAsDate = new Date();
+
+  // Reset nama pelawat rows
+  document.getElementById('nama_pelawat_rows').innerHTML = '';
 
   // Reset semua checkbox & radio
   document.querySelectorAll('input[type="checkbox"], input[type="radio"]').forEach(el => {
@@ -607,11 +634,10 @@ function formatDate(val) {
 
 // Build WhatsApp message
 function buildMessage(driveUrls) {
-  const no = document.getElementById('no').value || '-';
   const wilayah = document.getElementById('wilayah').value || '-';
   const tanggal = formatDate(document.getElementById('tanggal').value);
   const jml = document.getElementById('jml_pelawat').value || '-';
-  const pelawat = document.getElementById('nama_pelawat').value || '-';
+  const pelawat = getNamaPelawat() || '-';
   const cara = getChecked('cara').join(', ') || '-';
   const respon = getChecked('respon').join('') || '-';
   const nama = document.getElementById('nama_anggota').value || '-';
@@ -648,7 +674,6 @@ function buildMessage(driveUrls) {
 `📋 *LAPORAN PELAWATAN*
 *WIL ${wilayah} GKI KEBAYORAN BARU*
 ━━━━━━━━━━━━━━━━━━━━
-📌 *No:* ${no}
 📅 *Tanggal:* ${tanggal}
 👥 *Jumlah Pelawat:* ${jml}
 🙋 *Nama Pelawat:* ${pelawat}
@@ -752,11 +777,10 @@ function collectData() {
     if (n) daftarAnggota.push(n + (niaVal ? ' (NIA: ' + niaVal + ')' : ''));
   });
   return {
-    no:            document.getElementById('no').value || '',
     wilayah:       document.getElementById('wilayah').value || '',
     tanggal:       document.getElementById('tanggal').value || '',
     jml_pelawat:   document.getElementById('jml_pelawat').value || '',
-    nama_pelawat:  document.getElementById('nama_pelawat').value || '',
+    nama_pelawat:  getNamaPelawat(),
     cara:          getChecked('cara').join(', '),
     respon:        getChecked('respon').join(''),
     nama_anggota:  document.getElementById('nama_anggota').value || '',
