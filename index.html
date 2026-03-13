@@ -668,7 +668,7 @@ async function sendViaFonnte() {
     // Buka WhatsApp dengan pesan
     const msg = buildMessage(driveUrl);
     const waUrl = 'https://wa.me/' + waNum + '?text=' + encodeURIComponent(msg);
-    window.open(waUrl, '_blank');
+    window.location.href = waUrl;
     showStatus('✅ WhatsApp terbuka! Tekan kirim di WhatsApp.', '#1a7a4a');
   } catch (err) {
     showStatus('❌ Error: ' + err.message, '#c0392b');
@@ -757,7 +757,7 @@ async function sendBoth() {
     // Buka WhatsApp
     const msg = buildMessage(driveUrl);
     const waUrl = 'https://wa.me/' + waNum + '?text=' + encodeURIComponent(msg);
-    window.open(waUrl, '_blank');
+    window.location.href = waUrl;
 
     if (sheetOk) {
       showStatus('✅ Sheet tersimpan! WhatsApp terbuka — tekan kirim.', '#1a7a4a');
