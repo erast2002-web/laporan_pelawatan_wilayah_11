@@ -173,11 +173,32 @@
 
   /* Anggota rows */
   .anggota-row {
-    display: grid;
-    grid-template-columns: 1fr auto;
+    display: flex;
+    flex-direction: column;
     gap: 8px;
+    margin-bottom: 12px;
+    padding: 12px;
+    background: #f8faff;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+  .anggota-row-header {
+    display: flex;
+    justify-content: space-between;
     align-items: center;
-    margin-bottom: 8px;
+  }
+  .anggota-row-header span {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--primary);
+  }
+  .anggota-row-header button {
+    background: none;
+    border: none;
+    color: #c0392b;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 0 4px;
   }
   .anggota-row .nia-wrap {
     display: flex;
@@ -190,10 +211,14 @@
     font-weight: 600;
   }
   .anggota-row input.nia-input {
-    width: 80px;
+    width: 100%;
     padding: 8px 8px;
     font-size: 14px;
-    text-align: center;
+  }
+  .anggota-fields-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
   }
 
   .add-btn {
@@ -352,7 +377,7 @@
     <div class="row2">
       <div class="field">
         <label>NIA</label>
-        <input type="text" id="nia" placeholder="Nomor NIA">
+        <input type="tel" id="nia" inputmode="numeric" pattern="[0-9]*" placeholder="Nomor NIA">
       </div>
       <div class="field">
         <label>No Telp / HP</label>
@@ -614,16 +639,54 @@ function addAnggota() {
   anggotaCount++;
   const row = document.createElement('div');
   row.className = 'anggota-row';
+  row.dataset.idx = anggotaCount;
   row.innerHTML = `
-    <div class="field" style="margin:0;">
-      <input type="text" placeholder="Nama anggota ke-${anggotaCount}" class="anggota-nama">
+    <div class="anggota-row-header">
+      <span>Anggota ke-${anggotaCount}</span>
+      <button type="button" onclick="removeAnggota(this)" title="Hapus">✕</button>
     </div>
-    <div class="nia-wrap">
-      <span class="nia-label">NIA</span>
-      <input type="text" class="nia-input anggota-nia" placeholder="—">
+    <div class="field" style="margin:0;">
+      <input type="text" placeholder="Nama lengkap" class="anggota-nama">
+    </div>
+    <div class="anggota-fields-row">
+      <div class="field" style="margin:0;">
+        <label style="font-size:10px;">NIA</label>
+        <input type="tel" inputmode="numeric" pattern="[0-9]*" class="nia-input anggota-nia" placeholder="Nomor NIA">
+      </div>
+      <div class="field" style="margin:0;">
+        <label style="font-size:10px;">Hubungan</label>
+        <select class="anggota-hubungan" onchange="onHubunganChange(this)">
+          <option value="">-- Pilih --</option>
+          <option value="Istri">Istri</option>
+          <option value="Suami">Suami</option>
+          <option value="Anak">Anak</option>
+          <option value="Ayah">Ayah</option>
+          <option value="Ibu">Ibu</option>
+          <option value="Kakak">Kakak</option>
+          <option value="Adik">Adik</option>
+          <option value="Lainnya">Lainnya</option>
+        </select>
+      </div>
+    </div>
+    <div class="field anggota-hubungan-lainnya" style="margin:0; display:none;">
+      <label style="font-size:10px;">Hubungan (Lainnya)</label>
+      <input type="text" class="anggota-hubungan-text" placeholder="Sebutkan hubungan...">
     </div>
   `;
   document.getElementById('anggota_rows').appendChild(row);
+}
+
+function removeAnggota(btn) {
+  btn.closest('.anggota-row').remove();
+}
+
+function onHubunganChange(sel) {
+  const row = sel.closest('.anggota-row');
+  const lainnya = row.querySelector('.anggota-hubungan-lainnya');
+  lainnya.style.display = sel.value === 'Lainnya' ? 'block' : 'none';
+  if (sel.value !== 'Lainnya') {
+    row.querySelector('.anggota-hubungan-text').value = '';
+  }
 }
 
 // Collect checked values for a named group
@@ -662,12 +725,20 @@ function buildMessage(driveUrls) {
 
   // Collect anggota lain
   let anggotaLines = '';
-  const namaInputs = document.querySelectorAll('.anggota-nama');
-  const niaInputs = document.querySelectorAll('.anggota-nia');
-  namaInputs.forEach((ni, i) => {
-    const n = ni.value.trim();
-    const niaVal = niaInputs[i] ? niaInputs[i].value.trim() : '-';
-    if (n) anggotaLines += `   ${i+1}. ${n} (NIA: ${niaVal || '-'})\n`;
+  const anggotaRows = document.querySelectorAll('.anggota-row');
+  let anggotaIdx = 0;
+  anggotaRows.forEach(row => {
+    const n = row.querySelector('.anggota-nama')?.value.trim();
+    const niaVal = row.querySelector('.anggota-nia')?.value.trim() || '-';
+    const hubSel = row.querySelector('.anggota-hubungan');
+    let hubungan = hubSel ? hubSel.value : '-';
+    if (hubungan === 'Lainnya') {
+      hubungan = row.querySelector('.anggota-hubungan-text')?.value.trim() || 'Lainnya';
+    }
+    if (n) {
+      anggotaIdx++;
+      anggotaLines += `   ${anggotaIdx}. ${n} (NIA: ${niaVal}, Hubungan: ${hubungan || '-'})\n`;
+    }
   });
   if (!anggotaLines) anggotaLines = '   (tidak ada)\n';
 
@@ -774,13 +845,22 @@ const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxu90YM3jXKAilbMYV7Ek
 
 // Kumpulkan data form ke object
 function collectData() {
-  const namaInputs = document.querySelectorAll('.anggota-nama');
-  const niaInputs  = document.querySelectorAll('.anggota-nia');
+  const anggotaRowsAll = document.querySelectorAll('.anggota-row');
   let daftarAnggota = [];
-  namaInputs.forEach((ni, i) => {
-    const n = ni.value.trim();
-    const niaVal = niaInputs[i] ? niaInputs[i].value.trim() : '';
-    if (n) daftarAnggota.push(n + (niaVal ? ' (NIA: ' + niaVal + ')' : ''));
+  anggotaRowsAll.forEach(row => {
+    const n = row.querySelector('.anggota-nama')?.value.trim();
+    const niaVal = row.querySelector('.anggota-nia')?.value.trim() || '';
+    const hubSel = row.querySelector('.anggota-hubungan');
+    let hubungan = hubSel ? hubSel.value : '';
+    if (hubungan === 'Lainnya') {
+      hubungan = row.querySelector('.anggota-hubungan-text')?.value.trim() || 'Lainnya';
+    }
+    if (n) {
+      let entry = n;
+      if (niaVal) entry += ' (NIA: ' + niaVal + ')';
+      if (hubungan) entry += ' [' + hubungan + ']';
+      daftarAnggota.push(entry);
+    }
   });
   return {
     wilayah:       document.getElementById('wilayah').value || '',
