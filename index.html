@@ -305,6 +305,15 @@
     🔄 Reset Form
   </button>
 
+  <!-- DIISI OLEH -->
+  <div class="card">
+    <div class="card-title">✍️ Diisi Oleh</div>
+    <div class="field">
+      <label>Nama Pengisi Form</label>
+      <input type="text" id="diisi_oleh" placeholder="Nama Anda">
+    </div>
+  </div>
+
   <!-- INFO DASAR -->
   <div class="card">
     <div class="card-title">📋 Informasi Dasar</div>
@@ -703,6 +712,7 @@ function formatDate(val) {
 
 // Build WhatsApp message
 function buildMessage(driveUrls) {
+  const diisiOleh = document.getElementById('diisi_oleh').value || '-';
   const wilayah = document.getElementById('wilayah').value || '-';
   const tanggal = formatDate(document.getElementById('tanggal').value);
   const jml = document.getElementById('jml_pelawat').value || '-';
@@ -751,6 +761,8 @@ function buildMessage(driveUrls) {
 `📋 *LAPORAN PELAWATAN*
 *WIL ${wilayah} GKI KEBAYORAN BARU*
 ━━━━━━━━━━━━━━━━━━━━
+📩 *Dilaporkan oleh:* ${diisiOleh}
+
 📅 *Tanggal:* ${tanggal}
 👥 *Jumlah Pelawat:* ${jml}
 🙋 *Nama Pelawat:* ${pelawat}
@@ -863,6 +875,7 @@ function collectData() {
     }
   });
   return {
+    diisi_oleh:    document.getElementById('diisi_oleh').value || '',
     wilayah:       document.getElementById('wilayah').value || '',
     tanggal:       document.getElementById('tanggal').value || '',
     jml_pelawat:   document.getElementById('jml_pelawat').value || '',
